@@ -1,0 +1,12 @@
+version: '2'
+services:
+  webchat:
+    build: .
+    container_name: webchat
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./:/webchat
+
+    command: /webchat/entrypoint.sh

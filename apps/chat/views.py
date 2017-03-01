@@ -112,6 +112,7 @@ class PublicChatView(APIView):
     
     def post(self, request: Request) -> Response:
         """
+        Body has to be in the form {"text": "MESSAGE_TEXT"}
         ---
         consumes:
             - application/json
@@ -167,7 +168,7 @@ class PrivateChatView(APIView):
               description: Username of the recipient user.
               required: true
               type: string
-              paramType: form
+              paramType: query
         """
         username = request.query_params['history_with']
         second_user = User.objects.get(username=username)
@@ -184,21 +185,17 @@ class PrivateChatView(APIView):
     def post(self, request: Request) -> Response:
         """
         Send message to user.
+        Body in the form {"to_user": "USERNAME", "text": "MESSAGE_TEXT"}
         ---
         consumes:
             - application/json
                 
         parameters:
-            - name: to_user
-              description: Username of the recipient.
+            - name: body
+              description: Body of message
               required: true
               type: string
-              paramType: form
-            - name: text
-              description: Text of the message.
-              required: true
-              type: string
-              paramType: form
+              paramType: body
         """
         
         data = dict(request.data)
