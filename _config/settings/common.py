@@ -95,3 +95,5 @@ TEMPLATES = [
 ]
 
 SWAGGER_ROOT_FOLDER = 'docs/'
+
+ALLOWED_HOSTS = ['*']

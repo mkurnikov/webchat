@@ -4,7 +4,6 @@ django-rest-swagger==0.3.10
 djangorestframework==3.5.4
 packaging==16.8
 path.py==10.1
-pkg-resources==0.0.0
 pyparsing==2.1.10
 PyYAML==3.12
 six==1.10.0
