@@ -100,9 +100,11 @@ class PublicChatView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def get(self, request: Request) -> Response:
-        # TODO: add yaml docs
+        """
+        Returns public message history.
+        """
         messages = []
-        for message in Message.objects.filter(to_user__isnull=True):
+        for message in Message.objects.filter(to_user__isnull=True).order_by('timestamp'):
             serialized_message = MessageSerializer(instance=message)
             messages.append(serialized_message.data)
         

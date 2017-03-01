@@ -88,17 +88,19 @@ class TestPublicChat(TestCase):
         message = Message.objects.all()[0]
         self.assertEqual(message.text, 'anytext')
     
-    def test_get_all_public_messages(self):
-        Message.objects.create(from_user=self.user, to_user=None, timestamp=11, text='anytext1')
-        Message.objects.create(from_user=self.user, to_user=None, timestamp=13, text='anytext2')
+    def test_get_all_public_messages_ordered(self):
+        Message.objects.create(from_user=self.user, to_user=None, timestamp=13, text='anytext1')
+        Message.objects.create(from_user=self.user, to_user=None, timestamp=11, text='anytext2')
         
         response = self.auth_client.get(reverse('public-chat'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        message_json1, message_json2 = response.data
+        message_json1 = response.data[0]
         self.assertEqual(message_json1['from_user'], self.user.username)
-        self.assertEqual(message_json1['text'], 'anytext1')
-        self.assertEqual(message_json2['text'], 'anytext2')
+        self.assertEqual(message_json1['timestamp'], 11)
+        
+        message_json2 = response.data[1]
+        self.assertEqual(message_json2['timestamp'], 13)
 
 
 class TestPrivateChat(TestCase):
