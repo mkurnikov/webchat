@@ -1,5 +1,5 @@
-Чтобы запустить докер:
+Запуск компоуза через
 
-        docker build -t webchat .
+        docker-compose build webchat
 
-        docker run -ti -p 8000:8000 -v `pwd`/:/webchat webchat /webchat/entrypoint.sh
+        docker-compose up -d webchat
