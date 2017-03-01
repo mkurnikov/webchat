@@ -21,9 +21,18 @@ class TestRegistration(TestCase):
         
         user = User.objects.get_by_natural_key(username)  # type: User
         self.assertTrue(user.check_password(password))
+    
+    def test_fail_if_user_exists(self):
+        username = 'asdf'
+        password = 'password'
+        user = User.objects.create_user(username, password=password)
         
-        # TODO: add fail on bad request
-        # TODO: add fail on existing user
+        response = self.client.post(reverse('register'), data={
+            'username': username,
+            'password': password,
+            'repeat_password': password
+        })
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class TestLogin(TestCase):
@@ -42,7 +51,19 @@ class TestLogin(TestCase):
         self.assertEqual(response.data['token'],
                          User.objects.get_by_natural_key(self.username).auth_token.key)
         
-        # TODO: add unsuccessful login
+    def test_fails_if_not_exists(self):
+        response = self.client.post(reverse('login'), data={
+            'username': 'unknown_username',
+            'password': self.password
+        })
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+    def test_fails_if_wrong_password(self):
+        response = self.client.post(reverse('login'), data={
+            'username': self.username,
+            'password': '123'
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class TestPublicChat(TestCase):

@@ -30,6 +30,8 @@ class RegistrationView(APIView):
               message: User record is created.
             - code: 400
               message: Invalid credentials.
+            - code: 406
+              message: User with this username already exists.
               
         """
         serialized = RegisterUserSerializer(data=request.data)
@@ -44,7 +46,10 @@ class RegistrationView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={
                 'errors': 'Passwords don\'t match.'
             })
-        
+
+        if User.objects.filter(username=username).exists():
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            
         User.objects.create_user(username=username, password=password)
         return Response(status=status.HTTP_201_CREATED)
 
@@ -65,6 +70,8 @@ class LoginView(APIView):
               message: Bad request form.
             - code: 401
               message: Invalid credentials.
+            - code: 404
+              message: No such username.
         """
         serialized = UserSerializer(data=request.data)
         if not serialized.is_valid():
@@ -73,7 +80,13 @@ class LoginView(APIView):
         username = serialized.data['username']
         password = serialized.data['password']
         
-        user = User.objects.get_by_natural_key(username)  # type: User
+        try:
+            user = User.objects.get_by_natural_key(username)  # type: User
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={
+                'detail': 'User with this username does not exist.'
+            })
+        
         if not user.check_password(password):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
@@ -144,7 +157,16 @@ class PrivateChatView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def get(self, request: Request) -> Response:
-        """ Get message history with user. """
+        """
+        Get message history with user.
+        ---
+        parameters:
+            - name: history_with
+              description: Username of the recipient user.
+              required: true
+              type: string
+              paramType: form
+        """
         username = request.query_params['history_with']
         second_user = User.objects.get(username=username)
         
@@ -158,7 +180,25 @@ class PrivateChatView(APIView):
         return Response(status=status.HTTP_200_OK, data=message_history_serialized)
         
     def post(self, request: Request) -> Response:
-        """ Send message to user. """
+        """
+        Send message to user.
+        ---
+        consumes:
+            - application/json
+                
+        parameters:
+            - name: to_user
+              description: Username of the recipient.
+              required: true
+              type: string
+              paramType: form
+            - name: text
+              description: Text of the message.
+              required: true
+              type: string
+              paramType: form
+        """
+        
         data = dict(request.data)
         data['from_user'] = request.user.username
         data['timestamp'] = get_current_timestamp()
